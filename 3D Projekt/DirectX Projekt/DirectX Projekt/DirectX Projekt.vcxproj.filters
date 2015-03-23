@@ -24,6 +24,9 @@
     <ClCompile Include="ObjImport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Billboard.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl">
@@ -32,7 +35,13 @@
     <FxCompile Include="VertexShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
-    <FxCompile Include="GeometryShader.hlsl">
+    <FxCompile Include="bbVertexShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="bbGeometryShader.hlsl">
+      <Filter>Resource Files</Filter>
+    </FxCompile>
+    <FxCompile Include="bbPixelShader.hlsl">
       <Filter>Resource Files</Filter>
     </FxCompile>
   </ItemGroup>
@@ -47,6 +56,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Root.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Billboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

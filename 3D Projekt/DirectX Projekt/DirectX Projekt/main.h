@@ -1,39 +1,19 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-//#include <windows.h>
-//#include <Windows.h>
-//#include <d3d11.h>
-//#include <d3dcompiler.h>
-//#include <DirectXMath.h>
-//#include <DirectXMathMatrix.inl>
-//#include <string.h>
-//#include <iostream>
-//#include <fstream>
-//#include <sstream>
-//#include <vector>
-//#include "Root.h"
 #include "ObjImport.h"
 #include "GameTime.h"
-
-
-//
-//#pragma comment(lib,"d3d11.lib")
-//#pragma comment(lib,"d3dcompiler.lib")
-//
+#include "Billboard.h"
 
 struct MatrixBuffer
 {
 	XMMATRIX WVP;
-	/*XMMATRIX worldMatrix;
-	XMMATRIX viewMatrix;
-	XMMATRIX projectionMatrix;*/
+	XMMATRIX World;
+	XMMATRIX WorldView;
+	XMMATRIX ProjMatrix;
 	XMFLOAT4 diffuseColor;
-	bool hasTexture;
-
-
+	int hasTexture;
 };
-
 
 class Main
 {
@@ -42,8 +22,9 @@ public:
 
 	void CreateShaders();
 	void CreateBuffers();
+	void CreateStates();
 	void SetViewport();
-	void Update();
+	XMMATRIX UpdateObj(ObjImport* obj, XMFLOAT3 otrans, XMFLOAT3 oscale);
 	void Render();
 	void FpsCounter();
 	//int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
@@ -65,39 +46,35 @@ public:
 	std::wstring mMainWndCaption;
 	HWND handle;
 
-	/*XMMATRIX WVPMatrix;
-	XMMATRIX worldMatrix;
-	XMMATRIX viewMatrix;
-	XMMATRIX worldView;
-	XMMATRIX projMatrix;
-	*/
 	XMMATRIX Rotation;
 	XMMATRIX Scale;
 	XMMATRIX Translation;
 
 
 	MatrixBuffer cbPerObj;
-
+	
 	ObjImport* o_import = nullptr;
 
 	Main();
 	~Main();
 
-	IDXGISwapChain* gSwapChain = nullptr;
-	ID3D11Device* gDevice = nullptr;
-	ID3D11DeviceContext* gDeviceContext = nullptr;
-	ID3D11RenderTargetView* gBackbufferRTV = nullptr;
-	ID3D11ShaderResourceView* gTextureView = nullptr;
+	//General
+	IDXGISwapChain* gSwapChain ;
+	ID3D11Device* gDevice ;
+	ID3D11DeviceContext* gDeviceContext ;
+	ID3D11RenderTargetView* gBackbufferRTV ;
+	ID3D11ShaderResourceView* gTextureView ;
 
-	ID3D11InputLayout* gVertexLayout = nullptr;
-	ID3D11DepthStencilView* gDepthStencilView = nullptr;
-	ID3D11Texture2D* gDepthStencilBuffer = nullptr;
+	ID3D11InputLayout* gVertexLayout ;
+	ID3D11InputLayout* gBillVertLayout ;
+	ID3D11DepthStencilView* gDepthStencilView ;
+	ID3D11Texture2D* gDepthStencilBuffer ;
 
-	ID3D11Buffer* gVertexBuffer = nullptr;
-	ID3D11Buffer* gIndexBuffer = nullptr;
-	ID3D11VertexShader* gVertexShader = nullptr;
-	ID3D11PixelShader* gPixelShader = nullptr;
-	ID3D11GeometryShader* gGeometryShader = nullptr;
+	ID3D11Buffer* gVertexBuffer ;
+	//ID3D11Buffer* gIndexBuffer;
+	ID3D11VertexShader* gVertexShader ;
+	ID3D11PixelShader* gPixelShader ;
+	ID3D11GeometryShader* gGeometryShader;
 
 	//New from Attila
 	ID3D11Buffer* gConstantBufferCamera;
@@ -111,12 +88,28 @@ public:
 	//Objects
 	ObjImport* sphrThingy;
 
+	//Billboards and particles
+	ID3D11VertexShader* billboardVS;
+	ID3D11GeometryShader* billboardGS;
+	ID3D11PixelShader* billboardPS;
+	Billboard* billBalls;
+	ID3D11Buffer* bbVertexBuffer = nullptr;
+	
+	//Blending and texturing
+	ID3D11RasterizerState* RSCullCW ;
+	ID3D11RasterizerState* RSCullCCW = nullptr;
+	ID3D11BlendState* blendTransparency = nullptr;
+	ID3D11RasterizerState* RSCullNone = nullptr;
+	ID3D11SamplerState* gBillTexSampler;
 
 	//Camera Objects
 	XMMATRIX WVP;
 	XMMATRIX World;
 	XMMATRIX camView;
 	XMMATRIX camProjection;
+
+	XMMATRIX WorldView;
+
 
 	XMVECTOR camPosition;
 	XMVECTOR camTarget;

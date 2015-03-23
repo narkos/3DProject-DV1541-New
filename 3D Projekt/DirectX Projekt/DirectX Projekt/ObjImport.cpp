@@ -485,7 +485,7 @@ bool ObjImport::o_OBJIMPORT(wstring o_fileName,
 				{
 					wstring tex_fileName = L"Assets/";
 					tex_fileName += mlineData.erase(0, 7);
-
+					
 					bool tex_isLoaded = false;
 					for (int i = 0; i < o_textureNameArray.size(); i++)
 					{

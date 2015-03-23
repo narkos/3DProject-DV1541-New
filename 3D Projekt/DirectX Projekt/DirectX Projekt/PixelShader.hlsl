@@ -6,12 +6,19 @@ SamplerState sampAni
 	AdressU = WRAP;
 	AdressV = WRAP;*/
 };
+
 cbuffer cbPerObject : register(c0)
 {
-	matrix WVP;
+	float4x4 WVP;
+	float4x4 World;
+	float4x4 WorldView;
+	float4x4 ProjMatrix;
 	float4 diffuseColor;
 	bool hasTexture;
 };
+
+
+
 struct VS_OUT
 {
 	float4 pos : SV_POSITION;

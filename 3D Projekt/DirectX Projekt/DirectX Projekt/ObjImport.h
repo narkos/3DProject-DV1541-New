@@ -53,7 +53,7 @@ public:
 	ID3D11Buffer*							o_meshVertBuff;					// mesh vertex buffer
 	ID3D11Buffer*							o_meshIndexBuff;				// mesh index buffer
 
-	XMMATRIX								o_meshWorldMTX;					// mesh world orientation matrix
+	XMFLOAT4X4								o_meshWorldMTX;					// mesh world orientation matrix
 	int										o_meshGroups;					// mesh groups or subsets
 	vector<int>								o_meshGroupIndexStart;			// mesh group Index start vector. Will contain the indices for when a group begins and ends.
 	vector<int>								o_meshGroupTexture;				// mesh group texture index.

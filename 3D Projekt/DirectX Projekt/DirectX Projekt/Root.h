@@ -17,6 +17,7 @@
 #include <dwrite.h>
 #include <dinput.h>
 
+//#define _XM_NO_INTRINSICS_
 
 using namespace std;
 using namespace DirectX;
@@ -39,6 +40,12 @@ struct Vertex
 	XMFLOAT3 pos;
 	XMFLOAT2 UV;
 	XMFLOAT3 normal;
+};
+
+struct BBVert
+{
+	XMFLOAT3 Pos;
+	XMFLOAT2 Size;
 };
 
 //

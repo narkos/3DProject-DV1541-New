@@ -71,6 +71,9 @@ void Main::CreateShaders()
 	
 	gDevice->CreateInputLayout(inputDesc, ARRAYSIZE(inputDesc), pVS->GetBufferPointer(), pVS->GetBufferSize(), &gVertexLayout);
 	pVS->Release();
+
+
+
 	//--------------PixelShader----------------------------------------------------------------------------------------------------------------
 	ID3DBlob* pPS = nullptr;
 	CompileShader(L"PixelShader.hlsl", "PS_main", "ps_5_0", &pPS);
@@ -79,12 +82,44 @@ void Main::CreateShaders()
 	pPS->Release();
 
 	//----------------GeometryShader-------------------------------------------------------------------------------------------------------------
-	ID3DBlob* pGS = nullptr;
+	/*ID3DBlob* pGS = nullptr;
 	CompileShader(L"GeometryShader.hlsl", "GS_main", "gs_5_0", &pGS);
 		
 	gDevice->CreateGeometryShader(pGS->GetBufferPointer(), pGS->GetBufferSize(), nullptr, &gGeometryShader);
-	pGS->Release();
-	
+	pGS->Release();*/
+
+
+	//---------------Billboard Shaders -----------------------------------------------//
+	// Billboard Vertex Shader
+
+	ID3DBlob* pBBVS = nullptr;
+
+	Main::CompileShader(L"bbVertexShader.hlsl", "BBVS_main", "vs_5_0", &pBBVS);
+
+	gDevice->CreateVertexShader(pBBVS->GetBufferPointer(), pBBVS->GetBufferSize(), nullptr, &billboardVS);
+
+	// Billboard input layout
+	D3D11_INPUT_ELEMENT_DESC bbinputDesc[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "SIZE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+	gDevice->CreateInputLayout(bbinputDesc, ARRAYSIZE(bbinputDesc), pBBVS->GetBufferPointer(), pBBVS->GetBufferSize(), &gBillVertLayout);
+	pBBVS->Release();
+
+	// Billboard Geometry Shader
+	ID3DBlob* pBBGS = nullptr;
+	CompileShader(L"bbGeometryShader.hlsl", "BBGS_main", "gs_5_0", &pBBGS);
+
+	gDevice->CreateGeometryShader(pBBGS->GetBufferPointer(), pBBGS->GetBufferSize(), nullptr, &billboardGS);
+	pBBGS->Release();
+
+	//Billboard Pixel Shader
+	ID3DBlob* pBBPS = nullptr;
+	CompileShader(L"bbPixelShader.hlsl", "BBPS_main", "ps_5_0", &pBBPS);
+
+	gDevice->CreatePixelShader(pBBPS->GetBufferPointer(), pBBPS->GetBufferSize(), nullptr, &billboardPS);
+	pBBPS->Release();
+
 }
 
 bool Main::InitDirectInput(HINSTANCE hInstance)
@@ -119,15 +154,6 @@ void Main::UpdateCamera()
 	camRotationMatrix = XMMatrixRotationRollPitchYaw(camPitch, camYaw, 0);
 	camTarget = XMVector3TransformCoord(DefaultForward, camRotationMatrix);
 	camTarget = XMVector3Normalize(camTarget);
-
-	//First-Person Camera
-	/* XMMATRIX RotateYTempMatrix;
-	RotateYTempMatrix = XMMatrixRotationY(camPitch);
-
-	camRight = XMVector3TransformCoord(DefaultRight, RotateYTempMatrix);
-	camUp = XMVector3TransformCoord(camUp, RotateYTempMatrix);
-	camForward = XMVector3TransformCoord(DefaultForward, RotateYTempMatrix);
-	*/
 
 	//Free-Look Camera
 	camRight = XMVector3TransformCoord(DefaultRight, camRotationMatrix);
@@ -195,7 +221,6 @@ void Main::DetectInput()
 
 	return;
 }
-
 
 
 void Main::FpsCounter()
@@ -278,43 +303,118 @@ void Main::CreateBuffers()
 	gDevice->CreateBuffer(&vBufferDesc, &data, &gVertexBuffer);
 
 	// Import Obj Data
-	sphrThingy = new ObjImport(L"Assets\\testCube.obj", gDevice, true, true);
+	sphrThingy = new ObjImport(L"Assets\\shprThingy_01.obj", gDevice, true, true);
 
 
-	// Create Constant Buffer(s)
+	////////////////////////////////////////////////
+	// Create Billboard/Particle Data
+	billBalls = new Billboard(gDevice,gDeviceContext, XMFLOAT3(3.0f, 1.0f, 2.0f), 0.5f, 0.5f, L"Assets/Particle_Blue_01.png");
+	BBVert billVerts[1];
+	billVerts[0].Pos = billBalls->billBaseVert.Pos;
+	billVerts[0].Size = billBalls->billBaseVert.Size;
+
+	D3D11_BUFFER_DESC vbbBufferDesc;
+	memset(&vbbBufferDesc, 0, sizeof(vbbBufferDesc));
+	vbbBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vbbBufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	vbbBufferDesc.ByteWidth = sizeof(BBVert);
+
+	D3D11_SUBRESOURCE_DATA bbdata;
+	bbdata.pSysMem = billVerts;
+	gDevice->CreateBuffer(&vbbBufferDesc, &bbdata, &bbVertexBuffer);
+
+	////////////////////////////////////////////
+	// Create Per Object Constant Buffer
 	D3D11_BUFFER_DESC cBufferDesc;
 	memset(&cBufferDesc, 0, sizeof(cBufferDesc));
-
 	cBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	cBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	cBufferDesc.ByteWidth = sizeof(MatrixBuffer);
-
 	gDevice->CreateBuffer(&cBufferDesc, NULL, &gConstantBufferCamera);
 
+	//Texture Sampler test
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	
+	gDevice->CreateSamplerState(&sampDesc, &gBillTexSampler);
+
 }
 
-
-void Main::SetViewport()
+void Main::CreateStates()
 {
-	D3D11_VIEWPORT vp;
-	vp.Height = (float)480;
-	vp.Width = (float)640;
-	vp.MinDepth = 0.0f;
-	vp.MaxDepth = 1.0f;
-	vp.TopLeftX = 0;
-	vp.TopLeftY = 0;
-	gDeviceContext->RSSetViewports(1, &vp);
+
+	//Create Blend State - Transparency
+	D3D11_BLEND_DESC tr_blendDesc;
+	ZeroMemory(&tr_blendDesc, sizeof(tr_blendDesc));
+
+	D3D11_RENDER_TARGET_BLEND_DESC tr_rendTargBlendDesc;
+	ZeroMemory(&tr_rendTargBlendDesc, sizeof(tr_rendTargBlendDesc));
+	tr_rendTargBlendDesc.BlendEnable = true;
+	tr_rendTargBlendDesc.SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	tr_rendTargBlendDesc.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	tr_rendTargBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	tr_rendTargBlendDesc.SrcBlendAlpha = D3D11_BLEND_ZERO;
+	tr_rendTargBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	tr_rendTargBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	tr_rendTargBlendDesc.RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	tr_blendDesc.AlphaToCoverageEnable = false;
+	tr_blendDesc.RenderTarget[0] = tr_rendTargBlendDesc;
+	gDevice->CreateBlendState(&tr_blendDesc, &blendTransparency);
+
+	/*D3D11_RENDER_TARGET_BLEND_DESC tr_rendTargBlendDesc;
+	ZeroMemory(&tr_rendTargBlendDesc, sizeof(tr_rendTargBlendDesc));
+	tr_rendTargBlendDesc.BlendEnable = true;
+	tr_rendTargBlendDesc.SrcBlend = D3D11_BLEND_SRC_COLOR;
+	tr_rendTargBlendDesc.DestBlend = D3D11_BLEND_BLEND_FACTOR;
+	tr_rendTargBlendDesc.BlendOp = D3D11_BLEND_OP_ADD;
+	tr_rendTargBlendDesc.SrcBlendAlpha = D3D11_BLEND_ONE;
+	tr_rendTargBlendDesc.DestBlendAlpha = D3D11_BLEND_ZERO;
+	tr_rendTargBlendDesc.BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	tr_rendTargBlendDesc.RenderTargetWriteMask = D3D10_COLOR_WRITE_ENABLE_ALL;
+	tr_blendDesc.AlphaToCoverageEnable = false;
+	tr_blendDesc.RenderTarget[0] = tr_rendTargBlendDesc;
+	gDevice->CreateBlendState(&tr_blendDesc, &blendTransparency);*/
+
+
+	// Create Counter-Clockwise Cull Mode
+
+	HRESULT hr;
+
+	// Create Rasterizer States / Cull Modes
+	D3D11_RASTERIZER_DESC cullModeDesc;
+	memset(&cullModeDesc, 0, sizeof(D3D11_RASTERIZER_DESC));
+	cullModeDesc.FillMode = D3D11_FILL_SOLID;
+	cullModeDesc.CullMode = D3D11_CULL_BACK;
+	cullModeDesc.FrontCounterClockwise = true;
+	//Create CCW CullMode
+	hr = gDevice->CreateRasterizerState(&cullModeDesc, &RSCullCCW);
+	//Create CW CullMode
+	cullModeDesc.FrontCounterClockwise = false;
+	hr = gDevice->CreateRasterizerState(&cullModeDesc, &RSCullCW);
+	//Create NONE CullMode
+	cullModeDesc.CullMode = D3D11_CULL_NONE;
+	hr = gDevice->CreateRasterizerState(&cullModeDesc, &RSCullNone);
+
 }
 
-void Main::Update()
+
+XMMATRIX Main::UpdateObj(ObjImport* obj, XMFLOAT3 otrans, XMFLOAT3 oscale)
 {
 	// Hold and update space matricies before rendering.
-	sphrThingy->o_meshWorldMTX = XMMatrixIdentity();
+	XMMATRIX meshWorld = XMLoadFloat4x4(&obj->o_meshWorldMTX);
+	meshWorld = XMMatrixIdentity();
 	Rotation = XMMatrixRotationY(3.14f);
-	Scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);
-	Translation = XMMatrixTranslation(-1.0f, 0.0f, 3.0f);
-	sphrThingy->o_meshWorldMTX = Rotation *  Scale * Translation;
-
+	Scale = XMMatrixScaling(oscale.x, oscale.y, oscale.z);
+	Translation = XMMatrixTranslation(otrans.x, otrans.y, otrans.z);
+	meshWorld = Rotation *  Scale * Translation;
+	return meshWorld;
 
 }
 
@@ -325,7 +425,8 @@ void Main::Render()
 	float clearColor[] = { 0, 0, 0, 1 };
 	UINT32 vertexSize = sizeof(float) * 8;
 	UINT32 offset = 0;
-
+	gDeviceContext->OMSetBlendState(0,0, 0xffffffff);
+	//Initialize WorldMatrix
 	World = XMMatrixIdentity();
 
 
@@ -335,6 +436,7 @@ void Main::Render()
 	DetectInput();
 	UpdateCamera();
 
+	WorldView = World * camView;
 	camProjection = XMMatrixPerspectiveFovLH((3.14f*(0.4f)), (640.0f / 480.0f), 0.5f, 1000.0f);
 	WVP = XMMatrixMultiply(World, XMMatrixMultiply(camView, camProjection));
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
@@ -363,23 +465,18 @@ void Main::Render()
 	//Draw Object with 4 vertices
 	gDeviceContext->Draw(4, 0);
 
-
-	Update();
-	//Render Quad
-	/*UINT32 vertexSize = sizeof(float) * 9;
-	UINT32 offset = 0;
-	gDeviceContext->IASetInputLayout(gVertexLayout);
-	gDeviceContext->IASetVertexBuffers(0, 1, &gVertexBuffer, &vertexSize, &offset);
-	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);*/
-
+///////////////////////////////////////////////////////
+	//// Draw Imported Objects
+	XMMATRIX meshWorld = UpdateObj(sphrThingy, XMFLOAT3(-1.0f, 0.0f, 2.0f), XMFLOAT3(0.2f, 0.2f, 0.2f));
 	
 	for (int i = 0; i < sphrThingy->o_meshGroups; ++i)
 	{
 		gDeviceContext->IASetIndexBuffer(sphrThingy->o_meshIndexBuff, DXGI_FORMAT_R32_UINT, 0);
 		gDeviceContext->IASetVertexBuffers(0, 1, &sphrThingy->o_meshVertBuff, &vertexSize, &offset);
-		/*ID3D11ShaderResourceView* srvTest;
-		CreateWICTextureFromFile(gDevice, gDeviceContext, sphrThingy->o_textureNameArray[i], nullptr, &srvTest);*/
-		/*WVP = sphrThingy->o_meshWorldMTX * camView * camProjection;*/
+
+
+		WVP = meshWorld * camView * camProjection;
+		
 		cbPerObj.WVP = XMMatrixTranspose(WVP);
 		cbPerObj.diffuseColor = sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_difColor;
 		cbPerObj.hasTexture = sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_hasTexture;
@@ -398,7 +495,44 @@ void Main::Render()
 			
 	}
 
+	// DRAW BILLBOARD
+	float blendFactor[] = { 0.75f, 0.75f, 0.75f, 0.75f };
+	gDeviceContext->OMSetBlendState(blendTransparency, blendFactor, 0xffffffff);
+
+	//gDeviceContext->RSSetState(RSCullNone);
+	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+	gDeviceContext->VSSetShader(billboardVS, nullptr, 0);
+	gDeviceContext->GSSetShader(billboardGS, nullptr, 0);
+	gDeviceContext->PSSetShader(billboardPS, nullptr, 0);
+	UINT bbvertexSize = sizeof(float) * 5;
+	UINT bboffset = 0;
+	gDeviceContext->IASetInputLayout(gBillVertLayout);
+	gDeviceContext->IASetVertexBuffers(0, 1, &bbVertexBuffer, &bbvertexSize, &bboffset);
 	
+	World = XMMatrixIdentity();
+	WorldView = World * camView;
+	WVP = World * camView *  camProjection;
+	cbPerObj.WorldView = XMMatrixTranspose(WorldView);
+	cbPerObj.ProjMatrix = XMMatrixTranspose(camProjection);
+	cbPerObj.WVP = XMMatrixTranspose(WVP);
+	cbPerObj.World = XMMatrixTranspose(World);
+	cbPerObj.hasTexture = billBalls->hasTexture;
+	gDeviceContext->UpdateSubresource(gConstantBufferCamera, 0, NULL, &cbPerObj, 0, 0);
+	
+	//gDeviceContext->VSSetConstantBuffers(0, 2, billCBarray);
+	gDeviceContext->GSSetConstantBuffers(0, 1, &gConstantBufferCamera);
+	gDeviceContext->PSSetConstantBuffers(0, 1, &gConstantBufferCamera);
+	//gDeviceContext->PSSetShaderResources(0, 1, &sphrThingy->o_meshSRV[sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[0]].oM_texIndex]);
+	gDeviceContext->PSSetShaderResources(0, 1, &billBalls->billSRV);
+	//gDeviceContext->PSSetSamplers(0, 1, &gBillTexSampler);
+	
+	gDeviceContext->Draw(1,0);
+
+	gDeviceContext->GSSetShader(NULL, 0, 0);
+	gDeviceContext->PSSetShader(NULL, 0, 0);
+	gDeviceContext->VSSetShader(NULL, 0, 0);
+
+	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 
@@ -419,6 +553,8 @@ int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int
 		mainObject.CreateShaders();
 
 		mainObject.CreateBuffers();
+
+		mainObject.CreateStates();
 
 		mainObject.InitDirectInput(hInstance);
 
@@ -507,6 +643,17 @@ LRESULT Main::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
+void Main::SetViewport()
+{
+	D3D11_VIEWPORT vp;
+	vp.Height = (float)480;
+	vp.Width = (float)640;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	gDeviceContext->RSSetViewports(1, &vp);
+}
 
 
 HRESULT Main::CreateDirect3DContext(HWND wndHandle)
@@ -588,13 +735,24 @@ Main::Main()
 	gDepthStencilView = nullptr;
 	gDepthStencilBuffer = nullptr;
 	gVertexBuffer = nullptr;
-	gIndexBuffer = nullptr;
+	//gIndexBuffer = nullptr;
 	gVertexBuffer = nullptr;
 	gPixelShader = nullptr;
 	gGeometryShader = nullptr;
-	
 	gConstantBufferCamera = nullptr;
-	
+
+	billboardVS = nullptr;
+	billboardGS = nullptr;
+	billboardPS = nullptr;
+	bbVertexBuffer = nullptr;
+
+		RSCullCW = nullptr;
+		RSCullCCW = nullptr;
+		blendTransparency = nullptr;
+		RSCullNone = nullptr;
+		gBillTexSampler = nullptr;
+
+
 	DefaultForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 	DefaultRight = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
 	camForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -613,25 +771,37 @@ Main::Main()
 
 Main::~Main()
 {
-	gVertexBuffer->Release();
-	//gConstantBuffer->Release();
-	gVertexLayout->Release();
-	gVertexShader->Release();
-	gPixelShader->Release();
+	 gSwapChain->Release();
+	 gDevice->Release();
+	 gDeviceContext->Release();
+	 gBackbufferRTV->Release();
+	 //gTextureView->Release();
 
-	gBackbufferRTV->Release();
-	gSwapChain->Release();
-	gDevice->Release();
-	gDeviceContext->Release();
+	 gVertexLayout->Release();
+	 gBillVertLayout->Release();
+	 gDepthStencilView->Release();
+	 gDepthStencilBuffer->Release();
 
-	//gTextureView->Release();
-	gDepthStencilBuffer->Release();
-	gDepthStencilView->Release();
+	 gVertexBuffer->Release();
+	 //gIndexBuffer->Release();
+	 gVertexShader->Release();
+	 gPixelShader->Release();
+	 //gGeometryShader->Release();
+	 gConstantBufferCamera->Release();
+	 DIKeyboard->Release();
+	 DIMouse->Release();
+	 billboardVS->Release();
+	 billboardGS->Release();
+	 billboardPS->Release();
+	 bbVertexBuffer->Release();
+	 RSCullCW->Release();
+	 RSCullCCW->Release();
+	 blendTransparency->Release();
+	 RSCullNone->Release();
+	 gBillTexSampler->Release();
 
-	gConstantBufferCamera->Release();
-	DIKeyboard->Release();
-	DIMouse->Release();
+
 	delete sphrThingy;
-
+	delete billBalls;
 
 }
