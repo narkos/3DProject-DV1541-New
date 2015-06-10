@@ -1,9 +1,45 @@
-﻿Build started 2015-03-18 17:41:37.
+﻿Build started 2015-06-10 11:27:38.
      1>Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectXTK\DirectXTK_Desktop_2013.vcxproj" on node 2 (Build target(s)).
-     1>Lib:
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectXTK\Inc" /ZI /nologo /W4 /WX- /Od /Oy- /D _WIN32_WINNT=0x0600 /D _WIN7_PLATFORM_UPDATE /D WIN32 /D _DEBUG /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /arch:SSE2 /fp:fast /Zc:wchar_t /Zc:forScope /Yu"pch.h" /Fp"Bin\Desktop_2013\Win32\Debug\DirectXTK.pch" /Fo"Bin\Desktop_2013\Win32\Debug\\" /Fd"Bin\Desktop_2013\Win32\Debug\DirectXTK.pdb" /Gd /TP /analyze- /errorReport:prompt Src\AlphaTestEffect.cpp Src\BasicEffect.cpp Src\BinaryReader.cpp Src\CommonStates.cpp Src\DDSTextureLoader.cpp Src\DGSLEffect.cpp Src\DGSLEffectFactory.cpp
+         DGSLEffectFactory.cpp
+         DGSLEffect.cpp
+         DDSTextureLoader.cpp
+         CommonStates.cpp
+         BinaryReader.cpp
+         BasicEffect.cpp
+         AlphaTestEffect.cpp
+         Generating Code...
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"Bin\Desktop_2013\Win32\Debug\DirectXTK.lib" /NOLOGO Bin\Desktop_2013\Win32\Debug\AlphaTestEffect.obj
+         Bin\Desktop_2013\Win32\Debug\BasicEffect.obj
+         Bin\Desktop_2013\Win32\Debug\CommonStates.obj
+         Bin\Desktop_2013\Win32\Debug\DDSTextureLoader.obj
+         Bin\Desktop_2013\Win32\Debug\DGSLEffect.obj
+         Bin\Desktop_2013\Win32\Debug\DGSLEffectFactory.obj
+         Bin\Desktop_2013\Win32\Debug\DualTextureEffect.obj
+         Bin\Desktop_2013\Win32\Debug\BinaryReader.obj
+         Bin\Desktop_2013\Win32\Debug\EffectCommon.obj
+         Bin\Desktop_2013\Win32\Debug\EffectFactory.obj
+         Bin\Desktop_2013\Win32\Debug\EnvironmentMapEffect.obj
+         Bin\Desktop_2013\Win32\Debug\GamePad.obj
+         Bin\Desktop_2013\Win32\Debug\GeometricPrimitive.obj
+         Bin\Desktop_2013\Win32\Debug\Model.obj
+         Bin\Desktop_2013\Win32\Debug\ModelLoadCMO.obj
+         Bin\Desktop_2013\Win32\Debug\ModelLoadSDKMESH.obj
+         Bin\Desktop_2013\Win32\Debug\ModelLoadVBO.obj
+         Bin\Desktop_2013\Win32\Debug\pch.obj
+         Bin\Desktop_2013\Win32\Debug\ScreenGrab.obj
+         Bin\Desktop_2013\Win32\Debug\SimpleMath.obj
+         Bin\Desktop_2013\Win32\Debug\SkinnedEffect.obj
+         Bin\Desktop_2013\Win32\Debug\SpriteBatch.obj
+         Bin\Desktop_2013\Win32\Debug\PrimitiveBatch.obj
+         Bin\Desktop_2013\Win32\Debug\SpriteFont.obj
+         Bin\Desktop_2013\Win32\Debug\VertexTypes.obj
+         Bin\Desktop_2013\Win32\Debug\WICTextureLoader.obj
          DirectXTK_Desktop_2013.vcxproj -> D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectXTK\Bin\Desktop_2013\Win32\Debug\DirectXTK.lib
      1>Done Building Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectXTK\DirectXTK_Desktop_2013.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.04
+Time Elapsed 00:00:02.22

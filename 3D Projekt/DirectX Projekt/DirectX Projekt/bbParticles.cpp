@@ -145,7 +145,7 @@ ParticleSystem::ParticleSystem(ID3D11Device* device, ID3D11DeviceContext* device
 	{
 		partInitCB[i] = 0;
 	}
-	partInitCB[0] = 10;
+	partInitCB[0] = 0;
 
 	D3D11_SUBRESOURCE_DATA initCBdata;
 	initCBdata.pSysMem = partInitCB;
@@ -356,7 +356,7 @@ void ParticleSystem::SetRendParameters()
 	const UINT nullcounts[] = { 0 };
 	if (part_firstTimeInit == true)
 	{ 
-		const UINT startcounts[] = { 10 };
+		const UINT startcounts[] = { 0 };
 		gDevCon->CSSetUnorderedAccessViews(0, 1, &part_UAVs[0], nullcounts);
 		gDevCon->CSSetUnorderedAccessViews(1, 1, &part_UAVs[1], startcounts);
 		part_firstTimeInit = false;

@@ -565,9 +565,7 @@ bool ObjImport::o_OBJIMPORT(wstring o_fileName,
 		XMFLOAT3 temp_unnormalized_FN = XMFLOAT3(0.0f, 0.0f, 0.0f);	//Storage for an unnormalized face normal. This is needed
 		//due to memory issues with XMVECTOR vectors.
 
-		XMFLOAT3 sumNormal = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		XMFLOAT3 tempSum = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		int count_face_w_vert;
+		
 
 
 
@@ -592,23 +590,42 @@ bool ObjImport::o_OBJIMPORT(wstring o_fileName,
 
 		}
 
+
+		XMFLOAT4 sumNormal = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+		
+		int count_face_w_vert = 0;
+		float tempX, tempY, tempZ;
 		for (int v = 0; v < o_totalVertices; ++v)
 		{
 			for (int f = 0; f < o_totalTriangles; ++f)
 			{
 				if (o_indices[f * 3] == v || o_indices[(f * 3) + 1] == v || o_indices[(f * 3) + 2] == v)
 				{
-					tempSum = oMath::x_sum(sumNormal, normal_temp[f]);
+					
+					tempX = sumNormal.x + normal_temp[f].x;
+					tempY = sumNormal.y + normal_temp[f].y;
+					tempZ = sumNormal.z + normal_temp[f].z;
+
+					sumNormal = XMFLOAT4(tempX, tempY, tempZ, 0.0f);
+			
 					count_face_w_vert++;
 				}
 			}
+			
+			XMVECTOR sumNormalVec;
+			sumNormalVec = XMVectorSet(sumNormal.x, sumNormal.y, sumNormal.z, 0.0f);
+			sumNormalVec = sumNormalVec / count_face_w_vert;
+			sumNormalVec = XMVector4Normalize(sumNormalVec);
+
 
 			//Average and normalize
-			o_vertices[v].normal.x = 1 / (sumNormal.x / count_face_w_vert);
-			o_vertices[v].normal.y = 1 / (sumNormal.y / count_face_w_vert);
-			o_vertices[v].normal.z = 1 / (sumNormal.z / count_face_w_vert);
+			o_vertices[v].normal.x = XMVectorGetX(sumNormalVec);
+			o_vertices[v].normal.y = XMVectorGetY(sumNormalVec);
+			o_vertices[v].normal.z = XMVectorGetZ(sumNormalVec);
 
-			sumNormal = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+			sumNormal = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+			sumNormalVec = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
 			count_face_w_vert = 0;
 		}
 

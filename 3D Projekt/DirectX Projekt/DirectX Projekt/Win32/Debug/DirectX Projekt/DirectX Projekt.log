@@ -1,12 +1,23 @@
-﻿Build started 2015-06-10 11:19:44.
+﻿Build started 2015-06-10 23:12:14.
      1>Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectX Projekt.vcxproj" on node 2 (Build target(s)).
      1>FxCompile:
-         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"partPSMAIN" /T ps_5_0 /Fo "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\partPixelShader.cso" /Od /Zi partPixelShader.hlsl 
-         compilation object save succeeded; see D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\partPixelShader.cso
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\fxc.exe /nologo /E"bcGS_main" /T gs_5_0 /Fo "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\BCGeometryShader.cso" /Od /Zi BCGeometryShader.hlsl 
+         compilation object save succeeded; see D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\BCGeometryShader.cso
+       ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\\DirectXTK\Inc" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Win32\Debug\DirectX Projekt\\" /Fd"Win32\Debug\DirectX Projekt\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt bbParticles.cpp
+         bbParticles.cpp
        Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\DirectX Projekt.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\DirectX Projekt.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\DirectX Projekt.lib" /MACHINE:X86 "Win32\Debug\DirectX Projekt\bbParticles.obj"
+         "Win32\Debug\DirectX Projekt\Billboard.obj"
+         "Win32\Debug\DirectX Projekt\BlendMapObject.obj"
+         "Win32\Debug\DirectX Projekt\Main.obj"
+         "Win32\Debug\DirectX Projekt\GameTime.obj"
+         "Win32\Debug\DirectX Projekt\ObjImport.obj"
+         "Win32\Debug\DirectX Projekt\Root.obj"
+         "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectXTK\Bin\Desktop_2013\Win32\Debug\DirectXTK.lib"
          DirectX Projekt.vcxproj -> D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\DirectX Projekt.exe
      1>Done Building Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectX Projekt.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.14
+Time Elapsed 00:00:01.44

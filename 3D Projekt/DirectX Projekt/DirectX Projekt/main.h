@@ -4,6 +4,7 @@
 #include "ObjImport.h"
 #include "GameTime.h"
 #include "bbParticles.h"
+#include "BlendMapObject.h"
 
 struct MatrixBuffer
 {
@@ -13,6 +14,12 @@ struct MatrixBuffer
 	XMMATRIX ProjMatrix;
 	XMFLOAT4 diffuseColor;
 	int hasTexture;
+};
+
+struct InverseMatrix 
+{
+	XMMATRIX InvWorldView;
+	XMFLOAT4 camPos;
 };
 
 class Main
@@ -56,6 +63,7 @@ public:
 
 
 	MatrixBuffer cbPerObj;
+	InverseMatrix cbInverseObj;
 	
 	ObjImport* o_import = nullptr;
 
@@ -82,6 +90,7 @@ public:
 
 	//New from Attila
 	ID3D11Buffer* gConstantBufferCamera;
+	ID3D11Buffer* gConstantBufferInverseView;
 
 	IDirectInputDevice8* DIKeyboard;
 	IDirectInputDevice8* DIMouse;
@@ -89,8 +98,9 @@ public:
 	DIMOUSESTATE mouseLastState;
 	LPDIRECTINPUT8 DirectInput;
 
-	//Objects
-	ObjImport* sphrThingy;
+	//Imported Models
+	ObjImport* m_sphrThingy;
+	ObjImport* m_cubeObjects;
 
 	//Billboards and particles
 	ID3D11VertexShader* billboardVS;
@@ -114,6 +124,15 @@ public:
 	ID3D11SamplerState* gSampStateLin = nullptr;
 	ID3D11RasterizerState* RSCullNone = nullptr;
 	
+
+	//BlendMap
+	ID3D11PixelShader* gAlphaMapPixelShader;
+	BlendMapObj* t_cubeTexArray;
+	BlendMapObj* t_testTexArray;
+
+	// Back-Face Culling
+	ID3D11GeometryShader* BCGeometryShader;
+
 
 	//Camera Objects
 	XMMATRIX WVP;

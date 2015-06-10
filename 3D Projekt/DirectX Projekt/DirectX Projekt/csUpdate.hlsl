@@ -23,7 +23,7 @@ cbuffer ParticleCount
 	uint4 NumParticles;
 };
 
-static const float Gravity = 0.01f; 
+static const float Gravity = 10.0f; 
 static const float Mass1 = 1.0f; 
 static const float Mass2 = 1000.0f; 
 static const float EventHorizon = 5.0f;
@@ -46,13 +46,13 @@ void CSMAINUPD(uint3 DispatchThreadID : SV_DispatchThreadID)
 		float r = length( distance ); 
 		
 		float3 Force = (Gravity * MassProduct / (r*r)) * normalize(distance);
-			// Calculate the new velocity, accounting for the acceleration from 
-			// the gravitational force over the current time step. 
-			part.Velocity = part.Velocity + (Force / Mass1) * TimeFactors.x;
+		// Calculate the new velocity, accounting for the acceleration from 
+		// the gravitational force over the current time step. 
+		part.Velocity = part.Velocity + (Force / Mass1) * TimeFactors.x;
 		// Calculate the new position, accounting for the new velocity value
 		// over the current time step. 
 		part.Position += part.Velocity * TimeFactors.x;
-			// Update the life time left for the particle, 
+		// Update the life time left for the particle, 
 		part.time += TimeFactors.x;
 		// Test to see how close the particle is to the black hole, and 
 		// don't pass it to the output list if it is too close, 

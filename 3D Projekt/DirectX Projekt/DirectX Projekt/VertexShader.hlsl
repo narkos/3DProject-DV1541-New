@@ -32,8 +32,9 @@ VS_OUT VS_main(VS_IN input)
 
 	output.pos = mul(float4(input.pos, 1.0f), WVP);
 
-	output.wPos = float4(input.pos, 1);
-	output.nor = float4(input.nor, 0);
+	//output.wPos = mul(float4(input.pos, 1), World);
+	output.wPos =float4(input.pos, 1.0f);
+	output.nor = float4(input.nor, 0.0f);
 	output.tex = input.tex;
 
 	return output;

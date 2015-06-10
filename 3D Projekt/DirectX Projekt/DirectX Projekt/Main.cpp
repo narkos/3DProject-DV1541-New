@@ -28,9 +28,7 @@ void Main::CreateShaders()
 	
 	gDevice->CreateInputLayout(inputDesc, ARRAYSIZE(inputDesc), pVS->GetBufferPointer(), pVS->GetBufferSize(), &gVertexLayout);
 	pVS->Release();
-
-
-
+	
 	//--------------PixelShader----------------------------------------------------------------------------------------------------------------
 	ID3DBlob* pPS = nullptr;
 	RootName::CompileShader(L"PixelShader.hlsl", "PS_main", "ps_5_0", &pPS);
@@ -38,12 +36,21 @@ void Main::CreateShaders()
 	gDevice->CreatePixelShader(pPS->GetBufferPointer(), pPS->GetBufferSize(), nullptr, &gPixelShader);
 	pPS->Release();
 
-	//----------------GeometryShader-------------------------------------------------------------------------------------------------------------
-	/*ID3DBlob* pGS = nullptr;
-	CompileShader(L"GeometryShader.hlsl", "GS_main", "gs_5_0", &pGS);
-		
-	gDevice->CreateGeometryShader(pGS->GetBufferPointer(), pGS->GetBufferSize(), nullptr, &gGeometryShader);
-	pGS->Release();*/
+	//--------------Alpha Map PixelShader---------------------------------------------------------------------------------------------------
+	ID3DBlob* apPS = nullptr;
+	RootName::CompileShader(L"alphaPixelShader.hlsl", "AlphaPS_main", "ps_5_0", &apPS);
+
+	gDevice->CreatePixelShader(apPS->GetBufferPointer(), apPS->GetBufferSize(), nullptr, &gAlphaMapPixelShader);
+	apPS->Release();
+
+
+	//--------------Back Face GeoShader---------------------------------------------------------------------------------------------------
+
+	ID3DBlob* pBCGS = nullptr;
+	RootName::CompileShader(L"BCGeometryShader.hlsl", "bcGS_main", "gs_5_0", &pBCGS);
+
+	gDevice->CreateGeometryShader(pBCGS->GetBufferPointer(), pBCGS->GetBufferSize(), nullptr, &BCGeometryShader);
+	pBCGS->Release();
 
 
 	//---------------Billboard Shaders -----------------------------------------------//
@@ -245,25 +252,25 @@ void Main::CreateBuffers()
 	struct TriangleVertex
 	{
 		float x, y, z;
-		float r, g, b;
+		float r, g;
 		float Nx, Ny, Nz;
 	}
 	triangleVertices[4] =
 	{
 		-0.5f, -0.5f, 5.0f,	//v0 pos
-		0.0f, 1.0f, 	//v0 Color
+		0.0f, 0.0f, 	//v0 Color
 		0.0f, 0.0f, -1.0f,
 
 		-0.5f, 0.5f, 5.0f,	//v1
-		0.0f, 0.0f, 	//v1 
+		0.0f, 1.0f, 	//v1 
 		0.0f, 0.0f, -1.0f,
 		
 		0.5f, -0.5f, 5.0f, //v2
-		1.0f, 1.0f,	//
+		1.0f, 0.0f,	//
 		0.0f, 0.0f, -1.0f,
 		
 		0.5f, 0.5f, 5.0f, //v3
-		1.0f, 0.0f,	
+		1.0f, 1.0f,	
 		0.0f, 0.0f, -1.0f
 	};
 
@@ -277,8 +284,14 @@ void Main::CreateBuffers()
 	data.pSysMem = triangleVertices;
 	gDevice->CreateBuffer(&vBufferDesc, &data, &gVertexBuffer);
 
-	// Import Obj Data
-	sphrThingy = new ObjImport(L"Assets\\shprThingy_01.obj", gDevice, true, true);
+	// Imported Obj Data
+	m_sphrThingy = new ObjImport(L"Assets\\shprThingy_01.obj", gDevice, true, true);
+	m_cubeObjects = new ObjImport(L"Assets\\coolCube01.obj", gDevice, true, true);
+
+	// Blend Textures
+	t_cubeTexArray = new BlendMapObj(gDevice, L"Assets\\GreenBlend.jpg", L"Assets\\GrayBlend.jpg", L"Assets\\cubeReverseAlphaSM.png");
+	t_testTexArray = new BlendMapObj(gDevice, L"Assets\\GreenBlend.jpg", L"Assets\\GrayBlend.jpg", L"Assets\\AlphaValue.png");
+
 
 
 	////////////////////////////////////////////////
@@ -309,6 +322,12 @@ void Main::CreateBuffers()
 	cBufferDesc.ByteWidth = sizeof(MatrixBuffer);
 	gDevice->CreateBuffer(&cBufferDesc, NULL, &gConstantBufferCamera);
 
+	D3D11_BUFFER_DESC cBufferInvDesc;
+	ZeroMemory(&cBufferInvDesc, sizeof(cBufferInvDesc));
+	cBufferInvDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cBufferInvDesc.Usage = D3D11_USAGE_DEFAULT;
+	cBufferInvDesc.ByteWidth = sizeof(InverseMatrix);
+	gDevice->CreateBuffer(&cBufferInvDesc, nullptr, &gConstantBufferInverseView);
 
 	//////
 	//Create Particle System
@@ -363,7 +382,8 @@ void Main::CreateStates()
 	hr = gDevice->CreateBlendState(&blendStateDesc, &gBlendStateTrans);
 
 
-
+	// Texture Samplers
+	// Anisotropic
 	D3D11_SAMPLER_DESC samplerDesc;
 	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -375,15 +395,16 @@ void Main::CreateStates()
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	gDevice->CreateSamplerState(&samplerDesc, &gSampStateAni);
 
-	
-	ZeroMemory(&samplerDesc, sizeof(D3D11_SAMPLER_DESC));
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	// Linear
+	D3D11_SAMPLER_DESC samplerDescLin;
+	ZeroMemory(&samplerDescLin, sizeof(D3D11_SAMPLER_DESC));
+	samplerDescLin.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDescLin.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescLin.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescLin.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescLin.MaxAnisotropy = 1;
+	samplerDescLin.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDescLin.MaxLOD = D3D11_FLOAT32_MAX;
 	gDevice->CreateSamplerState(&samplerDesc, &gSampStateLin);
 
 
@@ -413,6 +434,7 @@ XMMATRIX Main::UpdateObj(ObjImport* obj, XMFLOAT3 otrans, XMFLOAT3 oscale)
 	Rotation = XMMatrixRotationY(3.14f);
 	Scale = XMMatrixScaling(oscale.x, oscale.y, oscale.z);
 	Translation = XMMatrixTranslation(otrans.x, otrans.y, otrans.z);
+	//cbInverseObj = XMMatrixTranspose()
 	meshWorld = Rotation *  Scale * Translation;
 	return meshWorld;
 
@@ -445,7 +467,7 @@ void Main::Render()
 	camProjection = XMMatrixPerspectiveFovLH((3.14f*(0.4f)), (640.0f / 480.0f), 0.5f, 1000.0f);
 	WVP = XMMatrixMultiply(World, XMMatrixMultiply(camView, camProjection));
 	cbPerObj.WVP = XMMatrixTranspose(WVP);
-	cbPerObj.hasTexture = false;
+	cbPerObj.hasTexture = true;
 
 	gDeviceContext->UpdateSubresource(gConstantBufferCamera, 0, NULL, &cbPerObj, 0, 0);
 	gDeviceContext->VSSetConstantBuffers(0, 1, &gConstantBufferCamera);
@@ -457,49 +479,97 @@ void Main::Render()
 
 	gDeviceContext->IASetInputLayout(gVertexLayout);
 	gDeviceContext->IASetVertexBuffers(0, 1, &gVertexBuffer, &vertexSize, &offset);
-	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	gDeviceContext->RSSetState(RSCullNone);
 	
 	//Set Shaders and texture
 	gDeviceContext->HSSetShader(nullptr, nullptr, 0);
 	gDeviceContext->DSSetShader(nullptr, nullptr, 0);
 	gDeviceContext->VSSetShader(gVertexShader, nullptr, 0);
 	gDeviceContext->GSSetShader(nullptr, nullptr, 0);
-	gDeviceContext->PSSetShader(gPixelShader, nullptr, 0);
-	//gDeviceContext->PSSetShaderResources(0, 1, &gTextureView);
+	gDeviceContext->GSSetShader(BCGeometryShader, nullptr, 0);
+	gDeviceContext->PSSetShader(gAlphaMapPixelShader, nullptr, 0);
+	gDeviceContext->PSSetShaderResources(0, 3, t_testTexArray->m_textures);
+	gDeviceContext->PSSetSamplers(0, 1, &gSampStateLin);
 
 	//Draw Object with 4 vertices
 	gDeviceContext->Draw(4, 0);
 
+	
+	gDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	XMMATRIX meshWorld = UpdateObj(m_cubeObjects, XMFLOAT3(-12.0f, 0.0f, 2.0f), XMFLOAT3(1.0f, 1.0f, 1.0f));
+	for (int i = 0; i < m_cubeObjects->o_meshGroups; ++i)
+	{
+		gDeviceContext->IASetIndexBuffer(m_cubeObjects->o_meshIndexBuff, DXGI_FORMAT_R32_UINT, 0);
+		gDeviceContext->IASetVertexBuffers(0, 1, &m_cubeObjects->o_meshVertBuff, &vertexSize, &offset);
+
+
+		WVP = meshWorld * camView * camProjection;
+		WorldView = meshWorld * camView;
+		XMMATRIX invWorldView = XMMatrixInverse(nullptr, meshWorld);
+		//invWorldView = invWorldView*camView;
+		//cbInverseObj.InvWorldView = XMMatrixTranspose(invWorldView);
+		cbInverseObj.InvWorldView = invWorldView;
+		XMStoreFloat4(&cbInverseObj.camPos, camPosition);
+		
+		gDeviceContext->UpdateSubresource(gConstantBufferInverseView, 0, nullptr, &cbInverseObj, 0, 0);
+		cbPerObj.World = meshWorld;
+		cbPerObj.WorldView = WorldView;
+		cbPerObj.WVP = XMMatrixTranspose(WVP);
+		cbPerObj.hasTexture = 1;
+		gDeviceContext->UpdateSubresource(gConstantBufferCamera, 0, NULL, &cbPerObj, 0, 0);
+		gDeviceContext->VSSetConstantBuffers(0, 1, &gConstantBufferCamera);
+		gDeviceContext->GSSetConstantBuffers(0, 1, &gConstantBufferCamera);
+		gDeviceContext->GSSetConstantBuffers(1, 1, &gConstantBufferInverseView);
+		gDeviceContext->PSSetConstantBuffers(0, 1, &gConstantBufferCamera);
+		gDeviceContext->PSSetSamplers(0, 1, &gSampStateLin);
+		gDeviceContext->PSSetShaderResources(0, 3, t_cubeTexArray->m_textures);
+		
+		//gDeviceContext->PSSetShaderResources(0, 1, &t_cubeTexArray->m_textures[1]);
+
+
+		int indexStart = m_cubeObjects->o_meshGroupIndexStart[i];
+		int indexDrawAmount = m_cubeObjects->o_meshGroupIndexStart[i + 1] - m_cubeObjects->o_meshGroupIndexStart[i];
+		gDeviceContext->DrawIndexed(indexDrawAmount, indexStart, 0);
+
+	}
+
+
+	gDeviceContext->GSSetShader(nullptr, nullptr, 0);
 ///////////////////////////////////////////////////////
 	//// Draw Imported Objects
-	XMMATRIX meshWorld = UpdateObj(sphrThingy, XMFLOAT3(-1.0f, 0.0f, 2.0f), XMFLOAT3(0.2f, 0.2f, 0.2f));
+	gDeviceContext->PSSetShader(gPixelShader, nullptr, 0);
 	
-	for (int i = 0; i < sphrThingy->o_meshGroups; ++i)
+	meshWorld = UpdateObj(m_sphrThingy, XMFLOAT3(-1.0f, 0.0f, 2.0f), XMFLOAT3(0.2f, 0.2f, 0.2f));
+	
+	for (int i = 0; i < m_sphrThingy->o_meshGroups; ++i)
 	{
-		gDeviceContext->IASetIndexBuffer(sphrThingy->o_meshIndexBuff, DXGI_FORMAT_R32_UINT, 0);
-		gDeviceContext->IASetVertexBuffers(0, 1, &sphrThingy->o_meshVertBuff, &vertexSize, &offset);
+		gDeviceContext->IASetIndexBuffer(m_sphrThingy->o_meshIndexBuff, DXGI_FORMAT_R32_UINT, 0);
+		gDeviceContext->IASetVertexBuffers(0, 1, &m_sphrThingy->o_meshVertBuff, &vertexSize, &offset);
 
 
 		WVP = meshWorld * camView * camProjection;
 		
 		cbPerObj.WVP = XMMatrixTranspose(WVP);
-		cbPerObj.diffuseColor = sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_difColor;
-		cbPerObj.hasTexture = sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_hasTexture;
+		cbPerObj.diffuseColor = m_sphrThingy->o_materials[m_sphrThingy->o_meshGroupTexture[i]].oM_difColor;
+		cbPerObj.hasTexture = m_sphrThingy->o_materials[m_sphrThingy->o_meshGroupTexture[i]].oM_hasTexture;
 		gDeviceContext->UpdateSubresource(gConstantBufferCamera, 0, NULL, &cbPerObj, 0, 0); 
 		gDeviceContext->VSSetConstantBuffers(0, 1, &gConstantBufferCamera);
 		gDeviceContext->PSSetConstantBuffers(0, 1, &gConstantBufferCamera);
 		
 		//Checks if the imported submesh have a texture
-		if (sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_hasTexture == true)
+		if (m_sphrThingy->o_materials[m_sphrThingy->o_meshGroupTexture[i]].oM_hasTexture == true)
 		{
-			gDeviceContext->PSSetShaderResources(0, 1, &sphrThingy->o_meshSRV[sphrThingy->o_materials[sphrThingy->o_meshGroupTexture[i]].oM_texIndex]);
+			gDeviceContext->PSSetShaderResources(0, 1, &m_sphrThingy->o_meshSRV[m_sphrThingy->o_materials[m_sphrThingy->o_meshGroupTexture[i]].oM_texIndex]);
 		}
-		int indexStart = sphrThingy->o_meshGroupIndexStart[i];
-		int indexDrawAmount = sphrThingy->o_meshGroupIndexStart[i + 1] - sphrThingy->o_meshGroupIndexStart[i];
+		int indexStart = m_sphrThingy->o_meshGroupIndexStart[i];
+		int indexDrawAmount = m_sphrThingy->o_meshGroupIndexStart[i + 1] - m_sphrThingy->o_meshGroupIndexStart[i];
 		gDeviceContext->DrawIndexed(indexDrawAmount, indexStart, 0);
 			
 	}
+
+
+
 	setDepthStencilOff();
 	setAlphaBlendingAdd();
 	// DRAW BILLBOARD
@@ -906,7 +976,7 @@ Main::~Main()
 	 //gBillTexSampler->Release();
 
 
-	delete sphrThingy;
+	delete m_sphrThingy;
 	delete billBalls;
 
 }
