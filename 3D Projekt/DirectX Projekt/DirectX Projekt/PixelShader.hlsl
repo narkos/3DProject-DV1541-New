@@ -22,6 +22,7 @@ cbuffer cbPerObject : register(c0)
 struct VS_OUT
 {
 	float4 pos : SV_POSITION;
+	float4 wPos : POSITION;
 	float2 tex : TEXCOORD;
 	float4 nor : NORMAL;
 };

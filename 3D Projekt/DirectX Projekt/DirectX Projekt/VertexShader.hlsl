@@ -19,6 +19,7 @@ struct VS_IN
 struct VS_OUT
 {
 	float4 pos : SV_POSITION;
+	float4 wPos : POSITION;
 	float2 tex : TEXCOORD;
 	float4 nor  : NORMAL;
 };
@@ -31,7 +32,7 @@ VS_OUT VS_main(VS_IN input)
 
 	output.pos = mul(float4(input.pos, 1.0f), WVP);
 
-	//output.pos = float4(input.pos, 1);
+	output.wPos = float4(input.pos, 1);
 	output.nor = float4(input.nor, 0);
 	output.tex = input.tex;
 

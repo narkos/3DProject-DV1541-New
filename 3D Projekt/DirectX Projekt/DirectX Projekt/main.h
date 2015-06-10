@@ -3,7 +3,7 @@
 
 #include "ObjImport.h"
 #include "GameTime.h"
-#include "Billboard.h"
+#include "bbParticles.h"
 
 struct MatrixBuffer
 {
@@ -19,27 +19,31 @@ class Main
 {
 
 public:
-
 	void CreateShaders();
 	void CreateBuffers();
 	void CreateStates();
 	void SetViewport();
-	XMMATRIX UpdateObj(ObjImport* obj, XMFLOAT3 otrans, XMFLOAT3 oscale);
+	
 	void Render();
+	void Update();
 	void FpsCounter();
-	//int wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow);
 	HRESULT CreateDirect3DContext(HWND wndHandle);
 	HWND InitWindow(HINSTANCE hInstance);
 	LRESULT WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	//LRESULT CALLBACK CallWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	HRESULT CompileShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, _In_ LPCSTR profile, _Outptr_ ID3DBlob** blob);
-	/*struct MatrixBuffer;*/
-	
+	XMMATRIX UpdateObj(ObjImport* obj, XMFLOAT3 otrans, XMFLOAT3 oscale);
 
 	//Controller Functions
 	bool InitDirectInput(HINSTANCE hInstance);
 	void UpdateCamera(void);
 	void DetectInput();
+
+
+	//State functions
+	void setDepthStencilOff();
+	void setDepthStencilOn();
+	void setAlphaBlendingOff();
+	void setAlphaBlendingOn();
+	void setAlphaBlendingAdd();
 
 
 	GameTimer mTimer;
@@ -94,13 +98,22 @@ public:
 	ID3D11PixelShader* billboardPS;
 	Billboard* billBalls;
 	ID3D11Buffer* bbVertexBuffer = nullptr;
-	
+	ParticleSystem* partTest;
+
+
+
 	//Blending and texturing
+	ID3D11DepthStencilState* gDepthStencilState = nullptr;
+	ID3D11DepthStencilState* gDepthStencilStateDisable = nullptr;
 	ID3D11RasterizerState* RSCullCW ;
 	ID3D11RasterizerState* RSCullCCW = nullptr;
-	ID3D11BlendState* blendTransparency = nullptr;
+	ID3D11BlendState* gBlendStateDefault = nullptr;
+	ID3D11BlendState* gBlendStateAdd = nullptr;
+	ID3D11BlendState* gBlendStateTrans = nullptr;
+	ID3D11SamplerState* gSampStateAni = nullptr;
+	ID3D11SamplerState* gSampStateLin = nullptr;
 	ID3D11RasterizerState* RSCullNone = nullptr;
-	ID3D11SamplerState* gBillTexSampler;
+	
 
 	//Camera Objects
 	XMMATRIX WVP;
@@ -124,8 +137,14 @@ public:
 	XMMATRIX camRotationMatrix;
 	XMMATRIX groundWorld;
 
+
+
 	float moveLeftRight /*= 0.0f*/;
 	float moveBackForward /*= 0.0f*/;
+
+	int part_runParticles;
+	int part_addParticles;
+	int part_delParticles;
 
 	float camYaw /*= 0.0f*/;
 	float camPitch /*= 0.0f*/;

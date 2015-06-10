@@ -1,9 +1,27 @@
-﻿Build started 2015-03-22 20:40:14.
+﻿Build started 2015-03-25 17:31:47.
      1>Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectX Projekt.vcxproj" on node 2 (Build target(s)).
-     1>Link:
-         DirectX Projekt.vcxproj -> D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\Debug\DirectX Projekt.exe
-     1>Done Building Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectX Projekt.vcxproj" (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\\DirectXTK\Inc" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt Billboard.cpp Main.cpp ObjImport.cpp Root.cpp bbParticles.cpp
+         bbParticles.cpp
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\bbparticles.cpp : fatal error C1041: cannot open program database 'd:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\debug\vc120.idb'; if multiple CL.EXE write to the same .PDB file, please use /FS
+         Generating Code...
+         Compiling...
+         Billboard.cpp
+         Generating Code...
+         Compiling...
+         Root.cpp
+         ObjImport.cpp
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(210): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(490): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(531): warning C4018: '<' : signed/unsigned mismatch
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(124): warning C4101: 'oTemp_texCoordIndex' : unreferenced local variable
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(123): warning C4101: 'oTemp_vertNormIndex' : unreferenced local variable
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\objimport.cpp(122): warning C4101: 'oTemp_vertPosIndex' : unreferenced local variable
+         Main.cpp
+     1>d:\skapa\programming\3dproject-dv1541-new\3d projekt\directx projekt\directx projekt\main.cpp(491): warning C4007: 'wWinMain' : must be '__stdcall'
+         Generating Code...
+     1>Done Building Project "D:\SKAPA\Programming\3DProject-DV1541-New\3D Projekt\DirectX Projekt\DirectX Projekt\DirectX Projekt.vcxproj" (Build target(s)) -- FAILED.
 
-Build succeeded.
+Build FAILED.
 
-Time Elapsed 00:00:00.53
+Time Elapsed 00:00:06.06

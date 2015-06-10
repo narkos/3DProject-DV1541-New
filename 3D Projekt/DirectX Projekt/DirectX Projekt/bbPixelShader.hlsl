@@ -18,15 +18,16 @@ struct BBGS_OUT
 {
 	float4 posH: SV_POSITION;
 	float3 posW: POSITION;
-	//float3 norW: NORMAL;
 	float2 tex: TEXCOORD;
+	float time : TIME;
 };
 
 float4 BBPS_main(BBGS_OUT bbps_in) : SV_TARGET
 {
-
+	float4 color2 = float4(1.0, 0.1f, 0.1f, 1.0f);
 	float4 color = ParticleTexture.Sample(LinearSampler, bbps_in.tex);
-	//clip(color.a - .25);
+		//clip(color.a - .25);
+		color = color*color2;
 	return color;
 
 	/*float3 outputColor = float3(0.0f, 0.0f, 0.0f);

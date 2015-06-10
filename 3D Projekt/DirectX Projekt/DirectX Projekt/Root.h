@@ -1,7 +1,7 @@
 #ifndef ROOT_H
 #define ROOT_H
 
-
+#define DIRECTINPUT_VERSION 0x0800
 #include <windows.h>
 #include <Windows.h>
 #include <d3d11.h>
@@ -17,7 +17,6 @@
 #include <dwrite.h>
 #include <dinput.h>
 
-//#define _XM_NO_INTRINSICS_
 
 using namespace std;
 using namespace DirectX;
@@ -45,13 +44,18 @@ struct Vertex
 struct BBVert
 {
 	XMFLOAT3 Pos;
+	XMFLOAT3 Dir;
 	XMFLOAT2 Size;
+	float time;
 };
 
-//
-//HRESULT CreateWICTextureFromFileEx(
-//	)
-//
+
+namespace RootName
+{
+	HRESULT CompileShader(_In_ LPCWSTR srcFile, _In_ LPCSTR entryPoint, _In_ LPCSTR profile, _Outptr_ ID3DBlob** blob);
+}
+
+
 
 
 #endif

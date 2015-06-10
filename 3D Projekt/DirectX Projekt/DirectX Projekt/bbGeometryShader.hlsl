@@ -8,14 +8,9 @@ cbuffer gs_cbPerObject
 	bool hasTexture;
 };
 
-cbuffer gs_cbPerFrame
-{
-	vector camPosition;
-};
-
 static const float4 g_positions[4] =
 {
-	float4(-1, 1, 0, 0), float4(1, 1, 0, 0), float4(-1, -1, 0, 0), float4(1, -1, 0, 0),
+	float4(-1, 1, 0, 0), float4(1, 1, 0, 0), float4(-1, -1, 0, 0), float4(1, -1, 0, 0)
 };
 static const float2 gsTex[4] =
 {
@@ -32,7 +27,9 @@ static const float2 gsTex[4] =
 struct BBVS_OUT
 {
 	float3 wCenter : POSITION;
+	float3 wDir	: DIRECTION;
 	float2 wSize : SIZE;
+	float time : TIME;
 };
 
 struct BBGS_OUT
@@ -41,6 +38,7 @@ struct BBGS_OUT
 	float3 posW: POSITION;
 //	float3 norW: NORMAL;
 	float2 tex: TEXCOORD;
+	float time : TIME;
 };
 
 [maxvertexcount(4)]
@@ -68,46 +66,11 @@ void BBGS_main(point BBVS_OUT bbgs_in[1]/* : SV_POSITION*/, inout TriangleStream
 			poutput.posW = viewPos + float4(	g_positions[i].x * halfWidth,
 												g_positions[i].y * halfHeight, 0.0f, 0.0f);
 			poutput.tex = gsTex[i];
-
+			poutput.time = bbgs_in[0].time;
 			bbgs_out.Append(poutput);
 		}
 		bbgs_out.RestartStrip();
 
 
-	/*float3 upVec = (0.0f, 1.0f, 0.0f);
-	float3 lookVec = camPosition - bbgs_in[0].wCenter;
-	lookVec.y = 0.0f;
-	lookVec = normalize(lookVec);
-	float3 rightVec = cross(upVec, lookVec);
-
-
-	float halfWidth = 0.5*bbgs_in[0].wSize.x;
-	float halfHeight = 0.5*bbgs_in[0].wSize.y;
-
-	float4 newVert[4];
-
-	newVert[0] = float4(bbgs_in[0].wCenter + halfWidth * rightVec - halfHeight*upVec, 1.0f);
-	newVert[1] = float4(bbgs_in[0].wCenter + halfWidth * rightVec + halfHeight*upVec, 1.0f);
-	newVert[2] = float4(bbgs_in[0].wCenter - halfWidth * rightVec - halfHeight*upVec, 1.0f);
-	newVert[3] = float4(bbgs_in[0].wCenter - halfWidth * rightVec + halfHeight*upVec, 1.0f);
-
-	float2 gsTex[4] =
-	{
-		float2(0.0f, 1.0f),
-		float2(0.0f, 0.0f),
-		float2(1.0f, 1.0f),
-		float2(1.0f, 0.0f)
-	};
-
-
-	BBGS_OUT gsOut;
-	[unroll]
-	for (uint i = 0; i < 4; ++i)
-	{
-		gsOut.posH = mul(newVert[i], WVP);
-		gsOut.posW = newVert[i].xyz;
-		gsOut.norW = lookVec;
-		gsOut.tex = gsTex[i];
-		bbgs_out.Append(gsOut);
-	}*/
+	
 }
